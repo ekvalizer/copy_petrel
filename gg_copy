@@ -1,0 +1,61 @@
+import sys
+import argparse
+import os
+import glob
+import re
+import zipfile
+from distutils.dir_util import copy_tree
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--petrel_version', help='Petrel version. Should match template "20xx.x". Mandatory parameter')
+    parser.add_argument('--get_latest', help='True - get lastest version, False - get release version. default is false')
+    parser.add_argument('--petrel_dest_path', help='specify path to local server directory that contains Petrel')
+    parser.add_argument('--petrel_source_path', help='specify path to local server directory that contains Petrel')
+    args = parser.parse_args()
+    return args
+
+def main():
+    args = parse_args()
+    #check if petrel version argument is exists and valid 
+    petrel_version = args.petrel_version
+    validate_petrel_version(petrel_version)
+    petrel_env = f"PETREL_BUILD_{petrel_version}"
+    petrel_dir_path = f"C:\\Petrels\\Petrel {petrel_version}"
+
+    #create env variable if not exists
+    if not petrel_env in os.environ:
+        set_env(petrel_env, petrel_dir_path)
+        print('Environment variable is set!')
+
+    #make directory for petrel if not exists
+    if not os.path.isdir(petrel_dir_path):
+        os.makedirs(petrel_dir_path)
+        print(f"Created directory {petrel_dir_path}")
+
+    #get latest petrel from src
+    #if args.
+    #copy_petrel()
+
+def validate_petrel_version(petrel_version):
+    if petrel_version is None:
+        raise AttributeError('--petrel_version argument is mandatory. Please, provide --petrel_version argument')        
+    if re.match(r"20\d\d\.\d", petrel_version) is None:
+        raise AttributeError('--petrel_version must match pettern 20xx.x')
+
+def set_env(key, value):
+    os.system(f"SETX {key} {value} /M")
+
+def copy_petrel(dest, src = None, vers = None):
+    petrel_src = r'\\oth-w7x64-1\home\ofwmgr\mirrors\PetrelBuilds\PetrelMasterGit_' + vers[-4:]
+    if not os.path.isdir(petrel_src):
+        print(f"directory {petrel_src} doesn't exist")
+    latest_petrel_dir = max(glob.glob(os.path.join(petrel_src, '*/')), key=os.path.getmtime)
+    build_zips_dir = os.path.join(latest_petrel_dir, "BuildZips")    
+    #zip_path = next(f for f in os.listdir(build_zips_dir) if f.contains("g"), "none")
+    #re.match(r".*Petrel.*binariesInstalled.*", f) is not None
+    print("Copying petrel...")
+    #copy_tree(latest_petrel_dir, petrel_dir_path)
+    print('Complete!')
+
+if __name__ == "__main__": main()
